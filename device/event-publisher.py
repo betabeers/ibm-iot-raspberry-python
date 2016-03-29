@@ -14,10 +14,26 @@ def publishStatus():
 
 	return myData
 
+def commandCallback(cmd):
+	print("Command received: %s" % cmd.data)
+	if cmd.command == "reboot":
+		if 'delay' not in cmd.data:
+			restart(0)
+		else:
+			restart(cmd.data['delay'])
+
+def restart(time):
+	command = "/usr/bin/sudo /sbin/shutdown -r %s" % time
+	import subprocess
+	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+	output = process.communicate()[0]
+	print output
+
 try:
 	options = ibmiotf.device.ParseConfigFile(configFilePath)
 	client = ibmiotf.device.Client(options)
 	client.connect()
+	client.commandCallback = commandCallback
 
 	while True:
 		myData = publishStatus()
